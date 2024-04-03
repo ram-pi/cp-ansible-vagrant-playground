@@ -1,0 +1,13 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: topic-example
+  namespace: confluent
+spec:
+  replicas: 1
+  partitionCount: 12
+  kafkaRestClassRef:
+    name: cp-access
+    namespace: confluent
+  configs:
+    cleanup.policy: "compact"

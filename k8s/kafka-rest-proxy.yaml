@@ -1,0 +1,50 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaRestProxy
+metadata:
+  name: kafkarestproxy
+  namespace: confluent
+  annotations:
+    platform.confluent.io/enable-dynamic-configs: "true"
+spec:
+  replicas: 1
+  # license:
+  #   secretRef: cp-license
+  image:
+    application: confluentinc/cp-kafka-rest:7.6.0
+    init: confluentinc/confluent-init-container:2.8.0
+  authorization:
+    type: rbac
+  configOverrides:
+    log4j:
+      - log4j.rootLogger=TRACE, stdout
+    server:
+      - bootstrap.servers=192.168.33.10:9092
+      - client.ssl.endpoint.identification.algorithm
+      - confluent.metadata.ssl.endpoint.identification.algorithm
+      - host.name=localhost
+      - listeners=http://0.0.0.0:8082
+      - client.security.protocol=SASL_SSL
+  dependencies:
+    mds:
+      endpoint: https://192.168.33.10:8090
+      tokenKeyPair:
+        secretRef: cp-mds-pem
+      authentication:
+        type: bearer
+        bearer:
+          secretRef: cp-credential
+      tls:
+        enabled: true
+        secretRef: kafka-tls
+        # directoryPathInContainer: /mnt/sslcerts/kafka-tls
+      # ignoreTrustStoreConfig: true
+    kafka:
+      bootstrapEndpoint: 192.168.33.10:9092
+      authentication:
+        type: oauthbearer
+        oauthbearer:
+          secretRef: cp-credential
+      tls:
+        enabled: true
+        secretRef: kafka-tls

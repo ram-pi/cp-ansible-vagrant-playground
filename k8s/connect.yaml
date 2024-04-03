@@ -1,0 +1,87 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connect
+metadata:
+  name: connect
+  namespace: confluent
+  annotations:
+    platform.confluent.io/enable-dynamic-configs: "true"
+    # platform.confluent.io/confluent-hub-install-extra-args: “--worker-configs /dev/null --component-dir /mnt/plugins”
+spec:
+  replicas: 1
+  # license:
+  #   secretRef: cp-license
+  image:
+    application: confluentinc/cp-server-connect:7.6.0
+    init: confluentinc/confluent-init-container:2.8.0
+  authorization:
+    type: rbac
+  configOverrides:
+    #   log4j:
+    #     - log4j.rootLogger=TRACE, stdout
+    server:
+      - bootstrap.servers=192.168.33.10:9092
+      - confluent.topic.replication.factor=1
+      - offset.storage.replication.factor=1
+      - config.storage.replication.factor=1
+      - ssl.endpoint.identification.algorithm
+      - admin.ssl.endpoint.identification.algorithm
+  #     - security.protocol=SASL_SSL
+  build:
+    type: onDemand
+    onDemand:
+      plugins:
+        confluentHub:
+          - name: kafka-connect-datagen
+            version: 0.6.5
+            owner: confluentinc
+  dependencies:
+    mds:
+      endpoint: https://192.168.33.10:8090
+      tokenKeyPair:
+        secretRef: cp-mds-pem
+      authentication:
+        type: bearer
+        bearer:
+          secretRef: cp-credential
+      tls:
+        enabled: true
+        secretRef: kafka-tls
+        # directoryPathInContainer: /mnt/sslcerts/kafka-tls
+      # ignoreTrustStoreConfig: true
+    kafka:
+      bootstrapEndpoint: 192.168.33.10:9092
+      authentication:
+        type: oauthbearer
+        oauthbearer:
+          secretRef: cp-credential
+      tls:
+        enabled: true
+        secretRef: kafka-tls
+    admin:
+      bootstrapEndpoint: 192.168.33.10:9092
+      authentication:
+        type: oauthbearer
+        oauthbearer:
+          secretRef: cp-credential
+      tls:
+        enabled: true
+        secretRef: kafka-tls
+    consumer:
+      bootstrapEndpoint: 192.168.33.10:9092
+      authentication:
+        type: oauthbearer
+        oauthbearer:
+          secretRef: cp-credential
+      tls:
+        enabled: true
+        secretRef: kafka-tls
+    producer:
+      bootstrapEndpoint: 192.168.33.10:9092
+      authentication:
+        type: oauthbearer
+        oauthbearer:
+          secretRef: cp-credential
+      tls:
+        enabled: true
+        secretRef: kafka-tls

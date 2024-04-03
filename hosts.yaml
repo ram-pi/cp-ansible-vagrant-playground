@@ -7,6 +7,9 @@ all:
     ansible_ssh_private_key_file: "{{ inventory_dir }}/.vagrant/machines/default/virtualbox/private_key"
 
     rbac_enabled: true
+    create_mds_certs: false # To provide your own MDS Certs set this variable and the next two
+    token_services_public_pem_file: "{{ inventory_dir }}/certs/generated/public.pem"
+    token_services_private_pem_file: "{{ inventory_dir }}/certs/generated/tokenKeypair.pem"
 
     sasl_protocol: plain
     ssl_enabled: true
