@@ -4,6 +4,7 @@ all:
     ansible_user: vagrant
     ansible_become: true
     ansible_become_localhost: true
+    #ansible_ssh_private_key_file: "{{ inventory_dir }}/.vagrant/machines/default/vmware_desktop/private_key"
     ansible_ssh_private_key_file: "{{ inventory_dir }}/.vagrant/machines/default/virtualbox/private_key"
 
     rbac_enabled: true
@@ -19,7 +20,7 @@ all:
     ssl_ca_cert_filepath: "{{ inventory_dir }}/certs/generated/ca.crt"
     ssl_signed_cert_filepath: "{{ inventory_dir }}/certs/generated/server.crt"
     ssl_key_filepath: "{{ inventory_dir }}/certs/generated/server.key"
-    ssl_key_password: "test1234"
+    # ssl_key_password: "test1234"
 
     confluent_cli_download_enabled: true
     secrets_protection_enabled: false
@@ -27,6 +28,9 @@ all:
     zookeeper_ssl_enabled: false
     zookeeper_ssl_mutual_auth_enabled: false
     kafka_rest_ssl_mutual_auth_enabled: false
+
+    # enable ksqlDB Processing log
+    ksql_log_streaming_enabled: true
 
     #### Configuring Client Listener ####
     kafka_broker_configure_multiple_listeners: true
@@ -62,6 +66,8 @@ all:
         password: user1
 
     kafka_broker_custom_properties:
+      # authorizer.class.name: io.confluent.kafka.security.authorizer.ConfluentServerAuthorizer
+      # super.users: User:admin
       allow.everyone.if.no.acl.found: true
       confluent.balancer.enable: true
       confluent.balancer.heal.uneven.load.trigger: "ANY_UNEVEN_LOAD"
@@ -102,6 +108,8 @@ all:
       ldap.group.member.attribute.pattern: cn=([^,]+),.*
       # ldap auth
       listener.name.ldap.plain.sasl.server.callback.handler.class: io.confluent.security.auth.provider.ldap.LdapAuthenticateCallbackHandler
+      # add reauth timetout for ldap listener
+      listener.name.ldap.connections.max.reauth.ms: 60000
 
     ## LDAP USERS
     mds_super_user: superUser
@@ -127,6 +135,30 @@ all:
     rbac_component_additional_system_admins:
       - User:superUser
 
+    control_center_custom_properties:
+      confluent.controlcenter.mode.enable: "management"
+
+    schema_registry_custom_properties:
+      kafkastore.topic.replication.factor: 1
+      # This enables anonymous access with a principal of User:ANONYMOUS
+      confluent.schema.registry.anonymous.principal: true
+      authentication.skip.paths: /*
+      # confluent.schema.registry.authorizer.class:
+      # schema.registry.resource.extension.class:
+      # rest.servlet.initializor.classes:
+
+    # schema_registry_authentication_type: basic
+
+    # schema_registry_basic_users:
+    #   client:
+    #     principal: client
+    #     password: secret
+    #     roles: client,developer,admin
+    #   superUser:
+    #     principal: superUser
+    #     password: superUser
+    #     roles: client,developer,admin
+
 zookeeper:
   hosts:
     confluent:
@@ -147,3 +179,8 @@ kafka_broker:
           hostname: 192.168.33.10
         ldap:
           hostname: 192.168.33.10
+
+schema_registry:
+  hosts:
+    confluent:
+      ansible_host: 192.168.33.10
