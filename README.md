@@ -58,7 +58,7 @@ sudo ansible-playbook -i hosts.yaml confluent.platform.all -e @vars.encrypted.ya
 ### With VMware Vagrant Provider
 
 ```
-sudo ansible-playbook -i hosts.yaml confluent.platform.all -e @vars.encrypted.yaml --vault-password-file=password.txt -e 
+sudo ansible-playbook -i hosts.yaml confluent.platform.all -e @vars.encrypted.yaml --vault-password-file=password.txt -e "ansible_ssh_private_key_file={{ inventory_dir }}/.vagrant/machines/default/vmware_desktop/private_key
 ```
 
 ## mTLS Client
