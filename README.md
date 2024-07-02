@@ -2,6 +2,12 @@
 
 Playground for testing many [CP-Ansible](https://github.com/confluentinc/cp-ansible) configurations.
 
+## Prerequisites
+
+- [Vagrant](https://developer.hashicorp.com/vagrant/docs/installation)
+- [Virtualbox](https://www.virtualbox.org) or [VMware Hypervisor](https://www.vmware.com/products/desktop-hypervisor.html)
+- [Docker Compose Vagrant Plugin](https://github.com/leighmcculloch/vagrant-docker-compose)
+
 ## Start Vagrant VM
 
 ```
@@ -10,6 +16,18 @@ vagrant up --no-tty
 
 Vagrant VM will start this [docker-compose](https://github.com/ram-pi/docker-ldap/).  
 OpenLDAP will be reachable at 192.168.33.10:389, phpldapadmin is accessible through your browser [here](http://192.168.33.10:8080) (`CN=admin,dc=confluent,dc=io / admin`). 
+
+## Start Vagrant VM (On Apple Silicon Mac)
+
+You might need to install [VMware Desktop for Mac](https://www.vmware.com/products/desktop-hypervisor.html).
+
+
+You can launch your vagrant box like this:
+
+```
+VAGRANT_VAGRANTFILE=./vmware/Vagrantfile vagrant up --no-tty
+```
+
 
 ## Install Ansible collection
 
@@ -31,8 +49,16 @@ ansible-vault encrypt vars.yaml --output=vars.encrypted.yaml --vault-password-fi
 
 ## Install CP through ansible
 
+### With Virtualbox Vagrant Provider
+
 ```
 sudo ansible-playbook -i hosts.yaml confluent.platform.all -e @vars.encrypted.yaml --vault-password-file=password.txt
+```
+
+### With VMware Vagrant Provider
+
+```
+sudo ansible-playbook -i hosts.yaml confluent.platform.all -e @vars.encrypted.yaml --vault-password-file=password.txt -e 
 ```
 
 ## mTLS Client
@@ -95,5 +121,5 @@ kafka-console-consumer --bootstrap-server $BOOTSTRAP_SERVER --consumer.config cl
 ## Destroy Env
 
 ```
-vagrant destroy --no-tty
+vagrant destroy --force
 ```
