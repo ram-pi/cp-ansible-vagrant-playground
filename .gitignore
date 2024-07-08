@@ -1,3 +1,5 @@
 **/.vagrant
 **/generated
 **/.DS_Store
+**/bin
+**/lib
