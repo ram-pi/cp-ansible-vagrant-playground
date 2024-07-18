@@ -5,7 +5,7 @@ Playground for testing many [CP-Ansible](https://github.com/confluentinc/cp-ansi
 ## Prerequisites
 
 - [Vagrant](https://developer.hashicorp.com/vagrant/docs/installation)
-- [Virtualbox](https://www.virtualbox.org) or [VMware Hypervisor](https://support.broadcom.com/group/ecx/productdownloads?subfamily=VMware+Fusion)
+- [Virtualbox](https://www.virtualbox.org) or [VMware Hypervisor](https://www.vmware.com/products/desktop-hypervisor.html)
 - [Docker Compose Vagrant Plugin](https://github.com/leighmcculloch/vagrant-docker-compose)
 
 ## Start Vagrant VM
