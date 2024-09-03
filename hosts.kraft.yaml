@@ -1,0 +1,225 @@
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: vagrant
+    ansible_become: true
+    ansible_become_localhost: true
+    ansible_ssh_private_key_file: "{{ inventory_dir }}/.vagrant/machines/default/vmware_desktop/private_key"
+    #ansible_ssh_private_key_file: "{{ inventory_dir }}/.vagrant/machines/default/virtualbox/private_key"
+
+    rbac_enabled: true
+    create_mds_certs: false # To provide your own MDS Certs set this variable and the next two
+    token_services_public_pem_file: "{{ inventory_dir }}/certs/generated/public.pem"
+    token_services_private_pem_file: "{{ inventory_dir }}/certs/generated/tokenKeypair.pem"
+
+    sasl_protocol: plain
+    ssl_enabled: true
+    ssl_mutual_auth_enabled: false
+    regenerate_keystore_and_truststore: true
+    ssl_custom_certs: true
+    ssl_ca_cert_filepath: "{{ inventory_dir }}/certs/generated/ca.crt"
+    ssl_signed_cert_filepath: "{{ inventory_dir }}/certs/generated/server.crt"
+    ssl_key_filepath: "{{ inventory_dir }}/certs/generated/server.key"
+    # ssl_key_password: "test1234"
+
+    confluent_cli_download_enabled: true
+    secrets_protection_enabled: false
+
+    zookeeper_ssl_enabled: false
+    zookeeper_ssl_mutual_auth_enabled: false
+    kafka_rest_ssl_mutual_auth_enabled: false
+
+    # enable ksqlDB Processing log
+    ksql_log_streaming_enabled: true
+
+    #### Configuring Client Listener ####
+    kafka_broker_configure_multiple_listeners: true
+    kafka_broker_custom_listeners:
+      broker:
+        name: BROKER
+        port: 19091
+      internal:
+        name: INTERNAL
+        port: 9092
+      client:
+        name: CLIENT
+        port: 9094
+        ssl_enabled: false
+        sasl_protocol: plain
+      mtls:
+        name: MTLS
+        port: 9095
+        sasl_protocol: none
+        ssl_enabled: true
+        ssl_mutual_auth_enabled: true
+      free:
+        name: FREE
+        port: 9096
+        ssl_enabled: false
+        sasl_protocol: none
+      ldap:
+        name: LDAP
+        port: 9097
+        ssl_enabled: false
+        sasl_protocol: plain
+
+    sasl_plain_users:
+      user1:
+        principal: user1
+        password: user1
+
+    kafka_broker_custom_properties:
+      # authorizer.class.name: io.confluent.kafka.security.authorizer.ConfluentServerAuthorizer
+      # super.users: User:admin
+      allow.everyone.if.no.acl.found: true
+      confluent.balancer.enable: true
+      confluent.balancer.heal.uneven.load.trigger: "ANY_UNEVEN_LOAD"
+      # enable consumer lag emitter - mbean https://docs.confluent.io/platform/current/kafka/monitoring.html#consumer-lag-offsets
+      confluent.consumer.lag.emitter.enabled: true
+      confluent.consumer.lag.emitter.interval.ms: 10000
+      # extract from CN=myclient,OU=users,DC=confluent,DC=io just myclient
+      listener.name.mtls.ssl.principal.mapping.rules: RULE:^CN=(.*?),.*$/$1/L
+      # avoid ssl endpoint identification
+      ssl.endpoint.identification.algorithm: ""
+      # REPLICATION FACTOR CLUSTER SINGLE NODE
+      default.replication.factor: 1
+      confluent.balancer.topic.replication.factor: 1
+      confluent.metadata.topic.replication.factor: 1
+      confluent.metadata.topic.min.insync.replicas: 1
+      confluent.license.topic.replication.factor: 1
+      confluent.security.event.logger.exporter.kafka.topic.replicas: 1
+      # LDAP CONFIGURATION
+      ldap.java.naming.factory.initial: com.sun.jndi.ldap.LdapCtxFactory
+      ldap.com.sun.jndi.ldap.read.timeout: 3000
+      ldap.java.naming.provider.url: ldap://confluent:389
+      ldap.java.naming.security.principal: CN=admin,dc=confluent,dc=io
+      ldap.java.naming.security.credentials: "{{ ldap_psw }}"
+      ldap.java.naming.security.authentication: simple
+      # SEARCH MODE
+      ldap.search.mode: USERS
+      # USERS
+      ldap.user.search.base: ou=users,dc=confluent,dc=io
+      ldap.user.name.attribute: cn
+      ldap.user.object.class: person
+      ldap.user.memberof.attribute: memberOf
+      ldap.user.memberof.attribute.pattern: cn=([^,]+),.*
+      # GROUPS
+      ldap.group.search.base: ou=groups,dc=confluent,dc=io
+      ldap.group.name.attribute: cn
+      ldap.group.object.class: groupOfNames
+      ldap.group.member.attribute: member
+      ldap.group.member.attribute.pattern: cn=([^,]+),.*
+      # ldap auth
+      listener.name.ldap.plain.sasl.server.callback.handler.class: io.confluent.security.auth.provider.ldap.LdapAuthenticateCallbackHandler
+      # add reauth timetout for ldap listener
+      listener.name.ldap.connections.max.reauth.ms: 60000
+
+    kafka_controller_custom_properties:
+      default.replication.factor: 1
+      confluent.balancer.topic.replication.factor: 1
+      confluent.metadata.topic.replication.factor: 1
+      confluent.metadata.topic.min.insync.replicas: 1
+      confluent.license.topic.replication.factor: 1
+      confluent.security.event.logger.exporter.kafka.topic.replicas: 1
+
+    ## LDAP USERS
+    mds_super_user: superUser
+    mds_super_user_password: superUser
+    kafka_broker_ldap_user: superUser
+    kafka_broker_ldap_password: superUser
+    schema_registry_ldap_user: superUser
+    schema_registry_ldap_password: superUser
+    kafka_connect_ldap_user: superUser
+    kafka_connect_ldap_password: superUser
+    ksql_ldap_user: superUser
+    ksql_ldap_password: superUser
+    kafka_rest_ldap_user: superUser
+    kafka_rest_ldap_password: superUser
+    control_center_ldap_user: superUser
+    control_center_ldap_password: superUser
+
+    kafka_broker_additional_system_admins:
+      - Group:admins
+      - User:superUser
+      - User:user1
+
+    rbac_component_additional_system_admins:
+      - User:superUser
+
+    control_center_custom_properties:
+      confluent.controlcenter.mode.enable: "management"
+
+    kafka_controller_port: 9193
+
+    schema_registry_custom_properties:
+      kafkastore.topic.replication.factor: 1
+      # This enables anonymous access with a principal of User:ANONYMOUS
+      confluent.schema.registry.anonymous.principal: true
+      authentication.skip.paths: /*
+      # confluent.schema.registry.authorizer.class:
+      # schema.registry.resource.extension.class:
+      # rest.servlet.initializor.classes:
+
+    # schema_registry_authentication_type: basic
+
+    # schema_registry_basic_users:
+    #   client:
+    #     principal: client
+    #     password: secret
+    #     roles: client,developer,admin
+    #   superUser:
+    #     principal: superUser
+    #     password: superUser
+    #     roles: client,developer,admin
+
+    # Using archive
+    confluent_package_version: 7.6.2
+    installation_method: archive
+    confluent_archive_file_source: "{{ inventory_dir }}/confluent-7.6.2.tar.gz"
+    confluent_archive_file_remote: false
+
+    # monitoring exporting
+    jmxexporter_enabled: true
+    jolokia_enabled: true
+    kafka_controller_jmxexporter_port: 8179 # default is 8079
+    kafka_broker_jmxexporter_port: 8180 # default is 8080
+
+kafka_controller:
+  hosts:
+    confluent:
+      ansible_host: 192.168.33.10
+
+kafka_broker:
+  hosts:
+    confluent:
+      kafka_broker_custom_properties:
+        broker.rack: rack1
+      ansible_host: 192.168.33.10
+      kafka_broker_custom_listeners:
+        client:
+          hostname: 192.168.33.10
+        mtls:
+          hostname: 192.168.33.10
+        internal:
+          hostname: 192.168.33.10
+        ldap:
+          hostname: 192.168.33.10
+
+schema_registry:
+  hosts:
+    confluent:
+      ansible_host: 192.168.33.10
+
+control_center:
+  hosts:
+    confluent:
+      ansible_host: 192.168.33.10
+
+kafka_connect:
+  hosts:
+    confluent:
+      ansible_host: 192.168.33.10
+  vars:
+    kafka_connect_confluent_hub_plugins:
+      - confluentinc/kafka-connect-jdbc:10.7.11
+      - debezium/debezium-connector-postgresql:2.5.4
