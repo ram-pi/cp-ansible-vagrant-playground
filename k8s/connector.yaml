@@ -1,0 +1,24 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: pageviews
+  namespace: confluent
+spec:
+  class: "io.confluent.kafka.connect.datagen.DatagenConnector"
+  taskMax: 1
+  connectRest:
+    endpoint: https://192.168.33.10:8083
+    authentication:
+      type: bearer
+      bearer:
+        secretRef: cp-credential
+    tls:
+      secretRef: kafka-tls
+  configs:
+    kafka.topic: "pageviews"
+    quickstart: "pageviews"
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "org.apache.kafka.connect.json.JsonConverter"
+    value.converter.schemas.enable: "false"
+    max.interval: "1000"
+    iterations: "1000"
