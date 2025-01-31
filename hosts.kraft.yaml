@@ -7,6 +7,13 @@ all:
     ansible_ssh_private_key_file: "{{ inventory_dir }}/.vagrant/machines/default/vmware_desktop/private_key"
     #ansible_ssh_private_key_file: "{{ inventory_dir }}/.vagrant/machines/default/virtualbox/private_key"
 
+    # metrics
+    kafka_broker_jmxexporter_enabled: true
+    kafka_broker_jmxexporter_port: 8181
+    kafka_broker_jolokia_enabled: true
+    kafka_broker_jolokia_port: 7171
+    kafka_broker_jmxexporter_config_source_path: "{{ inventory_dir }}/monitoring/kafka_broker.yml"
+
     rbac_enabled: true
     create_mds_certs: false # To provide your own MDS Certs set this variable and the next two
     token_services_public_pem_file: "{{ inventory_dir }}/certs/generated/public.pem"
@@ -22,12 +29,15 @@ all:
     ssl_key_filepath: "{{ inventory_dir }}/certs/generated/server.key"
     # ssl_key_password: "test1234"
 
-    confluent_cli_download_enabled: true
+    confluent_cli_download_enabled: false
+    confluent_cli_custom_download_url: https://packages.confluent.io/confluent-cli/archives/latest/confluent_linux_arm64.tar.gz
     secrets_protection_enabled: false
 
     zookeeper_ssl_enabled: false
     zookeeper_ssl_mutual_auth_enabled: false
     kafka_rest_ssl_mutual_auth_enabled: false
+    kafka_controller_ssl_mutual_auth_enabled: false
+    kafka_controller_ssl_enabled: false
 
     # enable ksqlDB Processing log
     ksql_log_streaming_enabled: true
@@ -35,9 +45,9 @@ all:
     #### Configuring Client Listener ####
     kafka_broker_configure_multiple_listeners: true
     kafka_broker_custom_listeners:
-      broker:
-        name: BROKER
-        port: 19091
+      # broker:
+      #   name: BROKER
+      #   port: 19091
       internal:
         name: INTERNAL
         port: 9092
@@ -100,6 +110,7 @@ all:
       # USERS
       ldap.user.search.base: ou=users,dc=confluent,dc=io
       ldap.user.name.attribute: cn
+      #ldap.user.password.attribute:
       ldap.user.object.class: person
       ldap.user.memberof.attribute: memberOf
       ldap.user.memberof.attribute.pattern: cn=([^,]+),.*
@@ -149,7 +160,7 @@ all:
     control_center_custom_properties:
       confluent.controlcenter.mode.enable: "management"
 
-    kafka_controller_port: 9193
+    # kafka_controller_port: 9193
 
     schema_registry_custom_properties:
       kafkastore.topic.replication.factor: 1
@@ -173,16 +184,22 @@ all:
     #     roles: client,developer,admin
 
     # Using archive
-    confluent_package_version: 7.6.2
+    confluent_package_version: 7.7.1
+    # confluent_package_version: 7.5.3
     installation_method: archive
-    confluent_archive_file_source: "{{ inventory_dir }}/confluent-7.6.2.tar.gz"
+    #confluent_archive_file_source: "{{ inventory_dir }}/confluent-7.7.0.tar.gz"
+    # confluent_archive_file_source: "{{ inventory_dir }}/confluent-7.5.3.tar.gz"
+    confluent_archive_file_source: "{{ inventory_dir }}/confluent-7.7.1.tar.gz"
     confluent_archive_file_remote: false
 
-    # monitoring exporting
-    jmxexporter_enabled: true
-    jolokia_enabled: true
-    kafka_controller_jmxexporter_port: 8179 # default is 8079
-    kafka_broker_jmxexporter_port: 8180 # default is 8080
+    # service override
+    kafka_broker_service_environment_overrides:
+      JMX_PORT: 1111
+      JMX_HOSTNAME: localhost
+
+    kafka_controller_service_environment_overrides:
+      JMX_PORT: 1112
+      JMX_HOSTNAME: localhost
 
 kafka_controller:
   hosts:
@@ -190,6 +207,10 @@ kafka_controller:
       ansible_host: 192.168.33.10
 
 kafka_broker:
+  vars:
+    jmxexporter_enabled: true
+    jolokia_enabled: true
+    jmxexporter_url_remote: true
   hosts:
     confluent:
       kafka_broker_custom_properties:
@@ -204,11 +225,10 @@ kafka_broker:
           hostname: 192.168.33.10
         ldap:
           hostname: 192.168.33.10
-
-schema_registry:
-  hosts:
-    confluent:
-      ansible_host: 192.168.33.10
+# schema_registry:
+#   hosts:
+#     confluent:
+#       ansible_host: 192.168.33.10
 
 control_center:
   hosts:
@@ -221,5 +241,6 @@ kafka_connect:
       ansible_host: 192.168.33.10
   vars:
     kafka_connect_confluent_hub_plugins:
+      - confluentinc/kafka-connect-datagen:0.6.5
       - confluentinc/kafka-connect-jdbc:10.7.11
       - debezium/debezium-connector-postgresql:2.5.4

@@ -49,6 +49,14 @@ ansible-vault encrypt vars.yaml --output=vars.encrypted.yaml --vault-password-fi
 
 ## Install CP through ansible
 
+### Inventories
+
+You can try out different types of inventory:
+- hosts.simple.yaml
+- hosts.yaml with zookeeper and multiple listeners
+- hosts.kraft.yaml with kraft and multiple listeners 
+- hosts.kraft.sso.yaml with kraft and OIDC/mTLS 
+
 ### With Virtualbox Vagrant Provider
 
 ```
@@ -58,6 +66,7 @@ sudo ansible-playbook -i hosts.yaml confluent.platform.all -e @vars.encrypted.ya
 ### With VMware Vagrant Provider
 
 ```
+./certs/up.sh
 sudo ansible-playbook -i hosts.yaml confluent.platform.all -e @vars.encrypted.yaml --vault-password-file=password.txt -e "ansible_ssh_private_key_file={{ inventory_dir }}/.vagrant/machines/default/vmware_desktop/private_key
 ```
 
@@ -117,6 +126,37 @@ kafka-topics --bootstrap-server $BOOTSTRAP_SERVER --command-config client.oauth.
 echo "test" | kafka-console-producer --bootstrap-server $BOOTSTRAP_SERVER --topic oauth-test --producer.config client.oauth.properties
 kafka-console-consumer --bootstrap-server $BOOTSTRAP_SERVER --consumer.config client.oauth.properties --max-messages 1 --topic oauth-test --from-beginning
 ```
+
+## OIDC/mTLS RBAC
+
+You can set up an "OIDC/mTLS" environment by following these steps:
+- download confluent binaries version 7.8.0 or later (i.e. wget curl -O https://packages.confluent.io/archive/7.8/confluent-7.8.0.tar.gz)
+- `sudo ansible-playbook -i hosts.kraft.sso.yaml confluent.platform.all`
+
+### Connect with Kafka CLI
+
+```
+vagrant ssh
+sudo su -
+cd /opt/confluent/confluent-7.8.0/bin/
+./kafka-topics --bootstrap-server confluent:9094 --command-config /opt/confluent/etc/kafka/client.properties --list
+```
+
+### Control Center
+
+Open [https://192.168.33.10:9021](https://192.168.33.10:9021) and click on "Log in via SSO".
+
+Use `superUser/superUser` to login. 
+
+
+## kafka-ui
+
+To use `kafka-ui` run
+```
+vagrant ssh
+docker run -d --rm -it -p 1080:8080 -e DYNAMIC_CONFIG_ENABLED=true provectuslabs/kafka-ui
+```
+
 
 ## Destroy Env
 
