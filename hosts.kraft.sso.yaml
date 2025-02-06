@@ -16,6 +16,11 @@ all:
     ssl_signed_cert_filepath: "{{ inventory_dir }}/certs/generated/server.crt"
     ssl_key_filepath: "{{ inventory_dir }}/certs/generated/server.key"
 
+    # alternative to ssl_custom_certs
+    # ssl_provided_keystore_and_truststore: true
+    # ssl_keystore_filepath: "{{ inventory_dir }}/certs/generated/server.keystore.jks"
+    # ssl_keystore_key_password: confluent
+
     # mTLS
     ssl_client_authentication: required
     mds_ssl_client_authentication: required

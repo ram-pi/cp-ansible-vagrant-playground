@@ -28,3 +28,12 @@ openssl pkcs12 -export -in generated/server.crt -inkey generated/server.key -cha
 # Create pem encoded key pair to be used for signing and verifying JWT tokens
 openssl genrsa -out generated/tokenKeypair.pem 2048
 openssl rsa -in generated/tokenKeypair.pem -outform PEM -pubout -out generated/public.pem
+
+# Create keystore and truststore for kafka server
+# truststore with ca.crt
+echo "Create truststore with CA certificate"
+keytool -import -noprompt -alias CARoot -file generated/ca.crt -keystore generated/kafka.server.truststore.jks -storepass test1234
+# keystore with server.crt and server.key
+echo "Create keystore with server certificate"
+openssl pkcs12 -export -in generated/server.crt -inkey generated/server.key -chain -CAfile generated/ca.pem -name kafka -out generated/kafka.server.keystore.p12 -password pass:test1234
+keytool -importkeystore -noprompt -srckeystore generated/kafka.server.keystore.p12 -srcstoretype PKCS12 -destkeystore generated/kafka.server.keystore.jks -deststoretype JKS -storepass test1234 -srcstorepass test1234

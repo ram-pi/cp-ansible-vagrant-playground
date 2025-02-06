@@ -35,6 +35,12 @@ all:
     #### Configuring Client Listener ####
     kafka_broker_configure_multiple_listeners: true
     kafka_broker_custom_listeners:
+      mtls:
+        name: MTLS
+        port: 9095
+        sasl_protocol: none
+        ssl_enabled: true
+        ssl_mutual_auth_enabled: true
       internal:
         name: INTERNAL
         port: 9092
@@ -43,12 +49,6 @@ all:
         port: 9094
         ssl_enabled: false
         sasl_protocol: plain
-      mtls:
-        name: MTLS
-        port: 9095
-        sasl_protocol: none
-        ssl_enabled: true
-        ssl_mutual_auth_enabled: true
       free:
         name: FREE
         port: 9096
